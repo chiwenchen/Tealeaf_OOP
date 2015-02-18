@@ -17,11 +17,11 @@ class Player
     card_value = []
     own_card.map do|card|
       if card.face_value == "A" 
-        self.score += 1
+        @score += 1
       elsif card.face_value.class == Fixnum
-        self.score += card.face_value
+        @score += card.face_value
       else
-        self.score += 10
+        @score += 10
       end  
       card_value << card.face_value
     end
@@ -35,28 +35,28 @@ class Player
   end
 
   def busted?
-    true if score > 21
+    score > 21
   end
 
   def blackjack?
-    true if score == 21
+    score == 21
   end
 
 end
 
 class Dealer < Player
 
-  attr_accessor :dealer_turn
+  attr_accessor :active
 
   def initialize(given_name)
-    @dealer_turn = false
+    @active = false
     super(given_name)
   end
 
   def show_card
     puts "--- #{name} has ---"
     own_card.each do |card|
-      if own_card.index(card) == 1 && dealer_turn == false
+      if own_card.index(card) == 1 && active == false
         puts "Hidden card"
       else
         puts card
@@ -92,10 +92,8 @@ class Deck
   end
 
   def serve_card
-    get_card_index = all_cards.index(all_cards.sample)
-    get_card = all_cards[get_card_index]
-    all_cards.delete_at(get_card_index)
-    get_card
+   get_card_index = rand(all_cards.count) 
+   all_cards.delete_at(get_card_index) #this will also return the deleted item
   end
 
 end
@@ -115,20 +113,14 @@ class Card
 
 end
 
-class Game_Engine
+class GameEngine
   attr_accessor :gamer, :dealer, :deck
 
-  def initialize
-    system 'clear'
-    puts "Welcome to Blackjack!!"
-    sleep 1
-    puts "What's your name?"
-    name = gets.chomp
-    puts "Hello, #{name}, Good to see you!"
-    @gamer = Gamer.new(name)
+  def initialize(player_name)
+    puts "Hello, #{player_name}, Good to see you!"
+    @gamer = Gamer.new(player_name)
     @dealer = Dealer.new("Dealer")
     @deck = Deck.new 
-    @@dealer_turn = false
   end
 
   def show_hand
@@ -136,7 +128,7 @@ class Game_Engine
     gamer.show_card
     gamer.show_score
     dealer.show_card
-    dealer.dealer_turn ? dealer.show_score : dealer.hide_score
+    dealer.active ? dealer.show_score : dealer.hide_score
   end
 
   def start_game
@@ -171,7 +163,7 @@ class Game_Engine
     puts "Dealer's turn!"
     sleep 1
     show_hand
-    while !dealer.busted? && !dealer.blackjack? && !(dealer.count_score >= 17)
+    while !dealer.busted? && !dealer.blackjack? && dealer.count_score < 17
       dealer.own_card << @deck.serve_card
       show_hand
       sleep 1
@@ -179,29 +171,32 @@ class Game_Engine
   end
 
   def result
-    if gamer.busted? || gamer.blackjack?
-      puts "#You busted!! #{gamer.name} lose" if gamer.busted?
-      puts "Congras! You hit Blackjack!! #{gamer.name} won" if gamer.blackjack?
-    elsif dealer.busted? || dealer.blackjack?
-      puts "#{dealer.name} busted!! #{gamer.name} won!" if dealer.busted?
-      puts "#{dealer.name} hit Blackjack!! #{gamer.name} lose" if dealer.blackjack?
-    elsif dealer.count_score == gamer.count_score
+    case
+    when gamer.busted?
+      puts "#You busted!! #{gamer.name} lose"
+    when gamer.blackjack?
+      puts "Congras! You hit Blackjack!! #{gamer.name} won"
+    when dealer.busted?
+      puts "#{dealer.name} busted!! #{gamer.name} won!"
+    when dealer.blackjack?
+      puts "#{dealer.name} hit Blackjack!! #{gamer.name} lose"
+    when dealer.count_score == gamer.count_score
       puts "IT's a TIE!"
-    elsif dealer.count_score > gamer.count_score
+    when dealer.count_score > gamer.count_score
       show_hand
       puts "#{dealer.name}'s score is greater than #{gamer.name}, you lose!"
     else
       show_hand
       puts "#{gamer.name}'s score is greater than #{dealer.name}, you won!"
-    end
-  end
+   end
+ end
 
 
   def play
     start_game
     player_turn
     if !gamer.busted? && !gamer.blackjack?
-      self.dealer.dealer_turn = true
+      dealer.active = true
       dealer_turn
     end
     result
@@ -210,8 +205,17 @@ class Game_Engine
 end
 
 play_game = "Y"
+game_round = 1
 while play_game == "Y"
-  Game_Engine.new.play
+  system 'clear'
+  puts "Welcome to Blackjack!!"
+  sleep 1
+  if game_round == 1
+    puts "What's your name?"
+    player_name = gets.chomp
+    game_round += 1
+  end
+  GameEngine.new(player_name).play
   begin
     puts "Do you wanna play again? Y) Yes, N) No "
     play_game = gets.chomp.upcase
