@@ -25,7 +25,7 @@ class Player
       end  
       card_value << card.face_value
     end
-    self.score += 10 if score <= 11 && card_value.include?("A")
+    @score += 10 if score <= 11 && card_value.include?("A")
     score
   end
 
@@ -72,7 +72,7 @@ class Dealer < Player
 end
 
 class Gamer < Player
-
+ #all inherit from Player class
 end
 
 
@@ -141,7 +141,6 @@ class GameEngine
     dealer.own_card << @deck.serve_card
     dealer.own_card << @deck.serve_card
     show_hand
-
   end
 
   def player_turn
@@ -170,7 +169,7 @@ class GameEngine
     end
   end
 
-  def result
+  def show_result
     case
     when gamer.busted?
       puts "#You busted!! #{gamer.name} lose"
@@ -199,7 +198,7 @@ class GameEngine
       dealer.active = true
       dealer_turn
     end
-    result
+    show_result
   end
 
 end
@@ -222,6 +221,8 @@ while play_game == "Y"
   end until play_game == "Y" || play_game == "N"
 end 
 puts "Good Bye"
+sleep 1
+system 'clear'
 
 
 
