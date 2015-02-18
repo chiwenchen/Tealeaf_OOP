@@ -205,15 +205,15 @@ class GameEngine
 end
 
 play_game = "Y"
-game_round = 1
+first_round = true
 while play_game == "Y"
   system 'clear'
   puts "Welcome to Blackjack!!"
   sleep 1
-  if game_round == 1
+  if first_round
     puts "What's your name?"
     player_name = gets.chomp
-    game_round += 1
+    first_round = false
   end
   GameEngine.new(player_name).play
   begin
